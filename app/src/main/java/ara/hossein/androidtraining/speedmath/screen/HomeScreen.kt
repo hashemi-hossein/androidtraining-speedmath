@@ -9,28 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlin.random.Random
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
-    var firstNumber by remember { mutableIntStateOf(1) }
-    var secondNumber by remember { mutableIntStateOf(1) }
-    var userInput by remember { mutableStateOf("") }
-    var result by remember { mutableStateOf("") }
 
-    fun generateNumbers() {
-        firstNumber = Random(seed = System.currentTimeMillis()).nextInt(1, 10)
-        secondNumber = Random(seed = System.currentTimeMillis()).nextInt(1, 10)
-    }
-
-    fun checkAnswer(userInput: String): Boolean {
-        val correctAnswer = firstNumber + secondNumber
-        return userInput.toIntOrNull() == correctAnswer
-    }
-
-    LaunchedEffect(Unit) {
-        generateNumbers()
-    }
+    val viewModel: HomeViewModel = viewModel()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -39,27 +23,27 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.align(Alignment.Center),
         ) {
             Text(
-                text = "$firstNumber + $secondNumber",
+                text = "${viewModel.firstNumber.value} + ${viewModel.secondNumber.value}",
                 style = MaterialTheme.typography.headlineMedium,
             )
             OutlinedTextField(
-                value = userInput,
-                onValueChange = { userInput = it },
+                value = viewModel.userInput.value,
+                onValueChange = { viewModel.userInput.value = it },
                 label = { Text("Your Answer") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
             Button(onClick = {
-                if (checkAnswer(userInput)) {
-                    result = "Correct!"
-                    generateNumbers()
-                    userInput = ""
+                if (viewModel.checkAnswer(viewModel.userInput.value)) {
+                    viewModel.result.value = "Correct!"
+                    viewModel.generateNumbers()
+                    viewModel.userInput.value = ""
                 } else {
-                    result = "Incorrect, try again."
+                    viewModel.result.value = "Incorrect, try again."
                 }
             }) {
                 Text("Submit")
             }
-            Text(text = result, style = MaterialTheme.typography.bodyLarge)
+            Text(text = viewModel.result.value, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
